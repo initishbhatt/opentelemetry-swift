@@ -526,6 +526,12 @@ public class URLSessionInstrumentation {
     }
 
     private func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        // AV Asset Tasks cannot be auto instrumented, they dont include request attributes, skip them
+        if let avAssetTaskClass = Self.avAssetDownloadTask,
+           task.isKind(of: avAssetTaskClass) {
+            return
+        }
+        
         let taskId = idKeyForTask(task)
         var requestState: NetworkRequestState?
         queue.sync {
@@ -548,6 +554,7 @@ public class URLSessionInstrumentation {
     }
 
     private func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        
         let taskId = idKeyForTask(task)
 
         var requestState: NetworkRequestState?
